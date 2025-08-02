@@ -29,3 +29,11 @@ La sencillez del frontend permite que con instalar unicamente las dependencias d
 pip install -r requirements.txt
 ```
 y por supuesto tener configurado aws-cli.
+---
+
+##  Código
+* Estructura de archivos reducida. app.py contiene todo el código python (las 3 rutas principales, alguna función de la API y otras complementarias)
+* Cada template incluye el estilo y el código js.
+* Sin la autenticación no se puede acceder a subida o descarga. 
+---
+***Para que el usuario creado tenga acceso a costes no basta con otorgarle permisos de grupo. Se debe activar una opción en el perfil con root access.***
