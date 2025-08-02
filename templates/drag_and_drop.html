@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrastrar y Soltar Fotos</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900" rel="stylesheet">
+    <style>
+        /* Estilos generales de tu referencia */
+        body {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #ffeba7; /* Color de texto principal */
+            background-color: #1f2029; /* Color de fondo principal */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; /* Añadido para que no se pegue al borde */
+            box-sizing: border-box; /* Asegura que el padding no cause desbordamiento */
+        }
+
+        h1 {
+            font-weight: 600; /* h4 en tu estilo, lo aplico a h1 aquí */
+            color: #ffeba7; /* Color de los títulos */
+            margin-bottom: 30px;
+        }
+
+        p {
+            font-weight: 500;
+            font-size: 14px;
+            color: #c4c3ca; /* Un color ligeramente diferente para párrafos para contraste */
+        }
+
+        /* --- Contenedor principal de la aplicación --- */
+        /* Simula un "card-3d-wrap" o un contenedor central */
+        .app-container {
+            position: relative;
+            width: 90%;
+            max-width: 600px; /* Ajustado para un área de subida */
+            background-color: #2b2e38; /* Color de fondo de las tarjetas */
+            border-radius: 6px;
+            padding: 30px;
+            box-shadow: 0 8px 24px 0 rgba(16,39,112,.2); /* Sombra similar a la de tus botones/cards */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Área de Drag and Drop --- */
+        .drop-area {
+            border: 2px dashed #ffeba7; /* Borde con tu color de acento */
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            font-size: 1.2em;
+            color: #c4c3ca; /* Color de texto para el mensaje */
+            width: 100%; /* Ocupa el ancho del contenedor */
+            margin-bottom: 20px;
+            background-color: #1f2029; /* Un color ligeramente diferente para el área de drop */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .drop-area.highlight {
+            background-color: rgba(255, 235, 167, 0.1); /* Efecto de brillo sutil con el color de acento */
+            border-color: #ffeba7;
+            color: #ffeba7;
+        }
+
+        #file-input {
+            display: none; /* Oculta el input de archivo estándar */
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        /* --- Botones --- */
+        .select-button, .upload-button {
+            border-radius: 4px;
+            height: 44px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 200ms linear;
+            padding: 0 30px;
+            letter-spacing: 1px;
+            display: inline-flex; /* Usar display inline-flex para centrado vertical del texto */
+            align-items: center;
+            background-color: #ffeba7; /* Color de fondo de los botones */
+            color: #000000; /* Color de texto de los botones */
+            cursor: pointer;
+            border: none; /* Asegurar que no haya borde por defecto */
+            box-shadow: 0 4px 8px 0 rgba(21,21,21,.2); /* Sombra consistente */
+        }
+
+        .select-button:hover, .upload-button:hover {
+            background-color: #000000; /* Hover oscuro */
+            color: #ffeba7; /* Hover de texto brillante */
+            box-shadow: 0 8px 24px 0 rgba(16,39,112,.2); /* Sombra en hover */
+        }
+        
+        .upload-button:disabled {
+            background-color: #555;
+            color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* --- Previsualizaciones --- */
+        #preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+            background-color: #1f2029; /* Un fondo para las previsualizaciones */
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); /* Sombra interior para profundidad */
+            min-height: 100px; /* Para que siempre tenga un tamaño mínimo */
+            box-sizing: border-box;
+        }
+
+        .preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 1px solid #ffeba7; /* Borde con tu color de acento */
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2b2e38; /* Fondo para items individuales */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Sombra para items individuales */
+        }
+
+        .preview-item img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            object-fit: cover; /* Asegura que la imagen cubra el espacio sin distorsión */
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 0px; /* Ajustado para que el botón esté más arriba */
+            right: 0px;
+            background-color: #000000; /* Fondo oscuro para el botón de cerrar */
+            color: #ffeba7; /* Color de texto del botón de cerrar */
+            border: 1px solid #ffeba7; /* Borde de acento */
+            border-radius: 50%;
+            width: 25px; /* Más grande para ser más fácil de pulsar */
+            height: 25px;
+            font-size: 1em; /* Ajustado el tamaño de la fuente */
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+
+            
+        .noselq{
+        min-height: 10px;
+        background-image: linear-gradient(#1f2029,#f9e79b);
+        width: 440px;
+        display: inline-block;
+        }
+    .wasabi {
+        display: none;
+        border-radius: 4px;
+        height: 44px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: all 200ms linear;
+        padding: 0 30px;
+        letter-spacing: 1px;
+        
+        align-items: center;
+        background-color: #ffeba7; /* Color de fondo de los botones */
+        color: #000000; /* Color de texto de los botones */
+        cursor: pointer;
+        border: none; /* Asegurar que no haya borde por defecto */
+        box-shadow: 0 4px 8px 0 rgba(21,21,21,.2); /* Sombra consistente */
+        text-decoration: none; /* Eliminar el subrayado por defecto de los enlaces */
+        margin-top: 20px; 
+    }
+
+    .wasabi:hover {
+         background-color: #000000; /* Hover oscuro */
+        color: #ffeba7; /* Hover de texto brillante */
+        box-shadow: 0 8px 24px 0 rgba(16,39,112,.2); 
+    }
+        
+        .preview-item .remove-btn:hover {
+            background-color: #ff0000; /* Rojo en hover para indicar peligro */
+            color: white;
+            border-color: #ff0000;
+        }
+        .noselok{
+        min-height: 30px;
+        background-image: linear-gradient(#f9e79b, #1f2029);
+        }
+        /* --- Mensajes --- */
+        .message {
+            margin-top: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #ffeba7; /* Color de texto principal para los mensajes */
+            text-align: center;
+        }
+        /* Colores específicos para mensajes de estado */
+        .message.success {
+            color: limegreen;
+        }
+        .message.error {
+            color: crimson;
+        }
+        .message.info {
+            color: lightblue;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>Arrastra y Suelta tus Fotos Aquí</h1>
+
+        <div id="drop-area" class="drop-area">
+            <p>Arrastra y suelta tus imágenes aquí o haz clic para seleccionarlas.</p>
+            <input type="file" id="file-input" multiple accept="image/*">
+            <div class="button-container">
+                <button class="select-button" onclick="document.getElementById('file-input').click()">Seleccionar Fotos</button>
+            </div>
+        </div>
+
+        <div id="preview-container">
+            <p style="color: #666; font-size: 0.9em;">(No hay fotos seleccionadas)</p>
+        </div>
+
+        <button id="upload-button" class="upload-button" style="display: none;">Enviar al Servidor</button>
+        <p id="upload-message" class="message"></p>
+        <a href="/upload/set-price" id="wasabi-button" class="wasabi">Continúa</a>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const uploadButton = document.getElementById('upload-button');
+        const uploadMessage = document.getElementById('upload-message');
+
+        let filesToUpload = new DataTransfer(); // Usamos DataTransfer para gestionar los archivos seleccionados/arrastrados
+
+        // --- Eventos de Drag and Drop ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropArea.addEventListener('dragenter', highlight, false);
+        dropArea.addEventListener('dragover', highlight, false);
+        dropArea.addEventListener('dragleave', unhighlight, false);
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+
+        function handleDrop(e) {
+            unhighlight();
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        }
+
+        // --- Evento de selección de archivo manual ---
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // --- Procesar los archivos seleccionados/arrastrados ---
+        function handleFiles(files) {
+            uploadMessage.textContent = ''; // Limpiar mensajes anteriores
+            uploadMessage.classList.remove('success', 'error', 'info'); // Limpiar clases de estado
+
+            // Eliminar el mensaje de "No hay fotos seleccionadas" si existe
+            const noPhotosMsg = previewContainer.querySelector('p[style*="color: #666"]');
+            if (noPhotosMsg) {
+                noPhotosMsg.remove();
+            }
+
+            for (const file of files) {
+                // Solo añadir imágenes
+                if (file.type.startsWith('image/')) {
+                    // Verificar si el archivo ya existe para evitar duplicados
+                    let exists = Array.from(filesToUpload.files).some(existingFile =>
+                        existingFile.name === file.name &&
+                        existingFile.size === file.size &&
+                        existingFile.lastModified === file.lastModified
+                    );
+
+                    if (!exists) {
+                        filesToUpload.items.add(file);
+                        createPreview(file);
+                    } else {
+                        // Opcional: mostrar un mensaje si se intenta añadir un duplicado
+                        // console.warn(`Archivo duplicado ignorado: ${file.name}`);
+                    }
+                } else {
+                    uploadMessage.textContent = `Archivo no admitido: ${file.name}. Solo se permiten imágenes.`;
+                    uploadMessage.classList.add('error');
+                    console.warn(`Archivo no admitido: ${file.name} (${file.type}). Solo se permiten imágenes.`);
+                }
+            }
+            updateUploadButtonVisibility();
+        }
+
+        // --- Crear previsualización de la imagen ---
+        function createPreview(file) {
+            const previewItem = document.createElement('div');
+            previewItem.classList.add('preview-item');
+            previewItem.dataset.fileName = file.name; // Almacena el nombre del archivo para fácil eliminación
+
+            const img = document.createElement('img');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            previewItem.appendChild(img);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.classList.add('remove-btn');
+            removeBtn.textContent = 'x';
+            removeBtn.addEventListener('click', () => removeFile(file, previewItem));
+            previewItem.appendChild(removeBtn);
+
+            previewContainer.appendChild(previewItem);
+        }
+
+        // --- Eliminar un archivo de la lista de subida y de la previsualización ---
+        function removeFile(fileToRemove, previewItem) {
+            // Eliminar de filesToUpload
+            const newFileList = new DataTransfer();
+            Array.from(filesToUpload.files).forEach(file => {
+                if (!(file.name === fileToRemove.name &&
+                      file.size === fileToRemove.size &&
+                      file.lastModified === fileToRemove.lastModified)) {
+                    newFileList.items.add(file);
+                }
+            });
+            filesToUpload = newFileList; // Actualizar la lista de archivos
+
+            // Eliminar del DOM
+            previewItem.remove();
+            updateUploadButtonVisibility();
+        }
+
+        // --- Actualizar visibilidad del botón de subir ---
+        function updateUploadButtonVisibility() {
+            if (filesToUpload.files.length > 0) {
+                uploadButton.style.display = 'block';
+                // Asegurarse de que el mensaje "No hay fotos seleccionadas" no esté si hay fotos
+                const noPhotosMsg = previewContainer.querySelector('p[style*="color: #666"]');
+                if (noPhotosMsg) {
+                    noPhotosMsg.remove();
+                }
+            } else {
+                uploadButton.style.display = 'none';
+                // Mostrar el mensaje "No hay fotos seleccionadas" si no hay fotos
+                if (!previewContainer.querySelector('p[style*="color: #666"]')) {
+                    const p = document.createElement('p');
+                    p.style.color = '#666';
+                    p.style.fontSize = '0.9em';
+                    p.textContent = '(No hay fotos seleccionadas)';
+                    previewContainer.appendChild(p);
+                }
+            }
+        }
+
+        // Inicializar el estado del botón de subida y mensaje al cargar la página
+        document.addEventListener('DOMContentLoaded', updateUploadButtonVisibility);
+
+        // --- Lógica para enviar al backend (simulación) ---
+        uploadButton.addEventListener('click', () => {
+            if (filesToUpload.files.length === 0) {
+                uploadMessage.textContent = 'No hay archivos para subir.';
+                uploadMessage.classList.add('info');
+                return;
+            }
+
+            const formData = new FormData();
+            Array.from(filesToUpload.files).forEach(file => {
+                formData.append('images[]', file);
+            });
+
+            uploadMessage.textContent = 'Enviando fotos...';
+            uploadMessage.classList.remove('success', 'error', 'info');
+            uploadMessage.classList.add('info');
+            uploadButton.disabled = true;
+
+            console.log("Simulando envío de FormData al backend:");
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`  File: ${key} = ${value.name} (${value.size} bytes)`);
+                } else {
+                    console.log(`  ${key} = ${value}`);
+                }
+            }
+
+            
+            // Ejemplo de cómo harías el fetch a un backend real (descomentar y modificar URL)
+            fetch('/api/upload-photos', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la subida: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Respuesta del servidor:', data);
+                uploadMessage.textContent = '¡Fotos enviadas con éxito!';
+                uploadMessage.classList.remove('info', 'error');
+                uploadMessage.classList.add('success');
+                filesToUpload = new DataTransfer();
+                previewContainer.innerHTML = '';
+                updateUploadButtonVisibility();
+                document.getElementById('wasabi-button').style.display = 'inline-flex';
+            })
+            .catch(error => {
+                console.error('Error al subir:', error);
+                uploadMessage.textContent = `Error al enviar: ${error.message}`;
+                uploadMessage.classList.remove('info', 'success');
+                uploadMessage.classList.add('error');
+            })
+            .finally(() => {
+                uploadButton.disabled = false;
+            });
+            
+        });
+    </script>
+</body>
+<footer>
+    <!--<section class="noselok"></section>-->
+    <div class="col-12 text-center align-self-center py-5" style="text-align: center;">
+    <h1>pixelio.es</h1>
+    <section class="noselq"></section>
+    <!--<blockquote>Desde la cumbre no es tan alta una montaña</blockquote>-->
+    </div>
+    </footer>
+
+</html>

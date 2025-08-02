@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos CSS actualizados */
+        body {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #ffeba7; /* Color de texto principal */
+            background-color: #1f2029; /* Color de fondo principal */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-weight: 600;
+            color: #ffeba7; /* Color de los títulos */
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h2 {
+            font-weight: 600;
+            color: #ffeba7; /* H2 con el mismo estilo de título */
+            font-size: 1.3rem; /* Adaptado para un H2 */
+            margin-bottom: 15px;
+            text-align: left; /* Mantener la alineación a la izquierda para el listado */
+        }
+
+        p {
+            font-weight: 500;
+            font-size: 14px;
+            color: #c4c3ca; /* Un color ligeramente diferente para párrafos para contraste */
+            text-align: center;
+        }
+
+        /* --- Contenedor principal de la aplicación --- */
+        .container {
+            position: relative;
+            width: 90%;
+            max-width: 700px; /* Ajustado para un explorador de archivos */
+            background-color: #2b2e38; /* Color de fondo de las tarjetas */
+            border-radius: 6px;
+            padding: 30px;
+            box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Controles (Selector y Botón) --- */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+            justify-content: center;
+            width: 100%; /* Ocupa todo el ancho disponible del contenedor */
+        }
+
+        label {
+            font-weight: 500; /* Coincide con el estilo de párrafo */
+            color: #ffeba7; /* Color de acento */
+            white-space: nowrap; /* Evita que el texto se rompa */
+        }
+
+        select {
+            padding: 10px 15px;
+            border-radius: 4px; /* Ajustado de 5px a 4px para coincidir con botones */
+            border: 1px solid #ffeba7; /* Borde con color de acento */
+            font-size: 1rem;
+            flex-grow: 1;
+            max-width: 400px;
+            background-color: #1f2029; /* Fondo oscuro */
+            color: #ffeba7; /* Texto con color de acento */
+            appearance: none; /* Elimina estilos por defecto en algunos navegadores */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffeba7'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Flecha SVG personalizada */
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 20px auto;
+            cursor: pointer;
+        }
+        
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #ffeba7, 0 0 0 4px rgba(255, 235, 167, 0.4); /* Resaltar al enfocar */
+        }
+
+        button {
+            border-radius: 4px;
+            height: 44px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 200ms linear;
+            padding: 0 30px;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            background-color: #ffeba7; /* Color de fondo de los botones */
+            color: #000000; /* Color de texto de los botones */
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
+        }
+
+        button:hover {
+            background-color: #000000; /* Hover oscuro */
+            color: #ffeba7; /* Hover de texto brillante */
+            box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
+        }
+
+        /* --- Lista de Archivos --- */
+        .file-list {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 235, 167, 0.2); /* Línea divisoria sutil */
+            padding-top: 20px;
+            width: 100%;
+        }
+
+        #files {
+            list-style: none;
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 235, 167, 0.2); /* Borde suave */
+            border-radius: 6px; /* Ajustado a 6px */
+            background-color: #1f2029; /* Fondo similar al del cuerpo */
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); /* Sombra interior para profundidad */
+        }
+
+        #files li {
+            padding: 12px 18px; /* Un poco más de padding */
+            border-bottom: 1px solid rgba(255, 235, 167, 0.1); /* Separador más sutil */
+            color: #c4c3ca; /* Color de texto para los elementos de la lista */
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        #files li:last-child {
+            border-bottom: none;
+        }
+
+        #files li:hover {
+            background-color: #2b2e38; /* Fondo en hover similar al del contenedor */
+            color: #ffeba7; /* Texto brillante en hover */
+        }
+
+        #no-files-message {
+            text-align: center;
+            color: #c4c3ca;
+            margin-top: 20px;
+            font-style: italic;
+            font-size: 14px;
+        }
+        .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+    /* Botón de descarga con diseño cuadrado e icono */
+    .download-btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 6px;
+        font-size: 18px;
+        font-weight: bold;
+        background-color: #ffeba7;
+        color: #000000;
+        border: none;
+        cursor: pointer;
+        transition: all 200ms ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
+    }
+
+    .download-btn:hover {
+        background-color: #000000;
+        color: #ffeba7;
+        box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
+    }
+
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button id="s3-usage-btn">Consultar Uso y Coste</button>
+        <p id="s3-usage-result" style="margin-top:10px;"></p>
+    </div>
+
+    <div class="container">
+        <h1>Explorador de archivos</h1>
+
+        <div class="controls">
+            <label for="directory-select">Seleccionar Directorio:</label>
+            <select id="directory-select">
+                <option value=""> /</option>
+                {% for directory in directories %}
+                    <option value="{{ directory }}">{{ directory }}</option>
+                {% endfor %}
+            </select>
+            <button id="show-files-btn">Mostrar Archivos</button>
+        </div>
+
+        <div class="file-list">
+            <h2>Archivos en <span id="current-directory">Raíz del Bucket</span>:</h2>
+            <ul id="files"></ul>
+            <p id="no-files-message" style="display: none;">No hay archivos en este directorio.</p>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const directorySelect = document.getElementById('directory-select');
+        const showFilesBtn = document.getElementById('show-files-btn');
+        const filesList = document.getElementById('files');
+        const currentDirectorySpan = document.getElementById('current-directory');
+        const noFilesMessage = document.getElementById('no-files-message');
+
+        const fetchAndDisplayFiles = async (prefix) => {
+            filesList.innerHTML = '';
+            noFilesMessage.style.display = 'none';
+            currentDirectorySpan.textContent = prefix === '' ? 'Raíz del Bucket' : prefix;
+
+            try {
+                const response = await fetch('/api/list_objects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prefix: prefix })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const files = await response.json();
+
+                if (files.length === 0) {
+                    noFilesMessage.style.display = 'block';
+                } else {
+                    files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('file-item');
+
+                        const fileNameSpan = document.createElement('span');
+                        fileNameSpan.textContent = file;
+
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.classList.add('download-btn');
+                        downloadBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" 
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>`; 
+                        downloadBtn.title = 'Descargar';
+                        downloadBtn.onclick = () => {
+                            // window.location.href = `/api/object?name=${encodeURIComponent(file)}`;
+                            fetch(`/api/object?name=${encodeURIComponent(file)}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    window.location.href = data.url; // redirige al enlace de S3
+                                });
+                        };
+
+                        listItem.appendChild(fileNameSpan);
+                        listItem.appendChild(downloadBtn);
+                        filesList.appendChild(listItem);
+                    });
+                }
+            } catch (error) {
+                console.error("Error al obtener los archivos:", error);
+                filesList.innerHTML = `<li>Error al cargar los archivos: ${error.message}</li>`;
+                noFilesMessage.style.display = 'none';
+            }
+        };
+
+        showFilesBtn.addEventListener('click', () => {
+            const selectedPrefix = directorySelect.value;
+            fetchAndDisplayFiles(selectedPrefix);
+        });
+
+        fetchAndDisplayFiles('');
+    });
+
+    document.getElementById('s3-usage-btn').addEventListener('click', async () => {
+    const resultParagraph = document.getElementById('s3-usage-result');
+    resultParagraph.textContent = "Consultando uso de S3...";
+
+    try {
+        const res = await fetch('/api/s3_usage');
+        if (!res.ok) throw new Error("Error al obtener los datos");
+        const data = await res.json();
+
+        resultParagraph.innerHTML = `
+            Uso actual: <strong>${data.current_usage_gb} GB</strong><br>
+            Coste estimado actual: <strong>${data.current_cost} USD</strong><br>
+            Previsión fin de mes: <strong>${data.estimated_cost_end_month} USD</strong>
+        `;
+    } catch (err) {
+        resultParagraph.textContent = "Error al consultar uso: " + err.message;
+    }
+});
+</script>
+</body>
+</html>
