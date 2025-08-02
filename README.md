@@ -1,4 +1,4 @@
-# s3-interface
+# Simple Interface for Simple Storage Service (S3)
 ---
 
 ## 📄 Descripción
@@ -36,4 +36,4 @@ y por supuesto tener configurado aws-cli.
 * Cada template incluye el estilo y el código js.
 * Sin la autenticación no se puede acceder a subida o descarga. 
 ---
-***Para que el usuario creado tenga acceso a costes no basta con otorgarle permisos de grupo. Se debe activar una opción en el perfil con root access.***
+***AWS: Para que el usuario creado tenga acceso a costes no basta con otorgarle permisos de grupo. Se debe activar una opción en el perfil con root access.***
